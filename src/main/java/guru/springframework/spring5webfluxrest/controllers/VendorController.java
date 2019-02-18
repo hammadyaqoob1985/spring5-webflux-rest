@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import static java.util.Objects.nonNull;
+
 @Controller
 @RestController
 public class VendorController {
@@ -41,5 +43,26 @@ public class VendorController {
     Mono<Vendor> update(@PathVariable String id, @RequestBody Vendor vendor) {
         vendor.set_id(id);
         return vendorRepository.save(vendor);
+    }
+
+    @PatchMapping("/api/v1/vendors/{id}")
+    Mono<Vendor> patch(@PathVariable String id, @RequestBody Vendor vendor) {
+        Mono<Vendor> vendorMono = vendorRepository.findById(id)
+                .map(vendorFound -> {
+                    if(nonNull(vendor.getFirstName())) {
+                        if (!vendorFound.getFirstName().equals(vendor.getFirstName())) {
+                            vendorFound.setFirstName(vendor.getFirstName());
+                        }
+                    }
+                    if(nonNull(vendor.getLastName())) {
+                        if (!vendorFound.getLastName().equals(vendor.getLastName())) {
+                            vendorFound.setLastName(vendor.getLastName());
+                        }
+                    }
+                    return vendorFound;
+                })
+                .flatMap(vendorRepository::save);
+
+        return vendorMono;
     }
 }

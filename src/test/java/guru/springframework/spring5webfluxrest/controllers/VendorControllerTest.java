@@ -15,6 +15,7 @@ import reactor.core.publisher.Mono;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.*;
 
 public class VendorControllerTest {
 
@@ -33,7 +34,7 @@ public class VendorControllerTest {
     @Test
     public void list() {
 
-        BDDMockito.given(vendorRepository.findAll())
+        given(vendorRepository.findAll())
                 .willReturn(Flux.just(Vendor.builder().firstName("testFirstname1").lastName("lastFirstname1").build(),
                         Vendor.builder().firstName("testFirstname2").lastName("lastFirstname2").build()));
         webTestClient.get().uri("/api/v1/vendors/")
@@ -45,7 +46,7 @@ public class VendorControllerTest {
     @Test
     public void getById() {
 
-        BDDMockito.given(vendorRepository.findById("someId"))
+        given(vendorRepository.findById("someId"))
                 .willReturn(Mono.just( Vendor.builder().firstName("testFirstname2").lastName("lastFirstname2").build()));
 
         webTestClient.get().uri("/api/v1/vendors/someId")
@@ -55,7 +56,7 @@ public class VendorControllerTest {
 
     @Test
     public void testCreateVendor() {
-        BDDMockito.given(vendorRepository.saveAll(any(Publisher.class)))
+        given(vendorRepository.saveAll(any(Publisher.class)))
                 .willReturn(Flux.just(Vendor.builder().build()));
 
         Mono<Vendor> vendToSaveMono = Mono.just(Vendor.builder()
@@ -74,7 +75,7 @@ public class VendorControllerTest {
 
     @Test
     public void testUpdateVendor() {
-        BDDMockito.given(vendorRepository.save(any(Vendor.class)))
+        given(vendorRepository.save(any(Vendor.class)))
                 .willReturn(Mono.just(Vendor.builder().build()));
 
         Mono<Vendor> vendToSaveMono = Mono.just(Vendor.builder()
@@ -89,6 +90,37 @@ public class VendorControllerTest {
                 .exchange()
                 .expectStatus()
                 .isOk();
+
+    }
+
+    @Test
+    public void testPatchVendor() {
+        given(vendorRepository.findById(any(String.class)))
+                .willReturn(Mono.just(Vendor.builder()
+                        .firstName("firstName1")
+                        .lastName("lastName1")
+                        .build()));
+
+        given(vendorRepository.save(any(Vendor.class)))
+                .willReturn(Mono.just(Vendor.builder()
+                        .firstName("firstName1U")
+                        .lastName("lastName1U")
+                        .build()));
+
+        Mono<Vendor> vendToUpdateMono = Mono.just(Vendor.builder()
+                .firstName("firstName1U")
+                .lastName("lastName1U")
+                .build());
+
+        webTestClient
+                .patch()
+                .uri("/api/v1/vendors/any")
+                .body(vendToUpdateMono, Vendor.class)
+                .exchange()
+                .expectStatus()
+                .isOk();
+
+        verify(vendorRepository).save(any());
 
     }
 }

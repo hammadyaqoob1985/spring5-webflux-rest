@@ -13,6 +13,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.*;
 
 public class CategoryControllerTest {
 
@@ -30,7 +31,7 @@ public class CategoryControllerTest {
 
     @Test
     public void list() {
-        BDDMockito.given(categoryRepository.findAll())
+        given(categoryRepository.findAll())
                 .willReturn(Flux.just(Category.builder().description("testDescription1").build(),
                         Category.builder().description("testDescription2").build()));
         webTestClient.get().uri("/api/v1/categories/")
@@ -42,7 +43,7 @@ public class CategoryControllerTest {
     @Test
     public void getById() {
 
-        BDDMockito.given(categoryRepository.findById("someId"))
+        given(categoryRepository.findById("someId"))
                 .willReturn(Mono.just(Category.builder().description("testDescription1").build()));
 
         webTestClient.get().uri("/api/v1/categories/someId")
@@ -52,7 +53,7 @@ public class CategoryControllerTest {
 
     @Test
     public void testCreateCategory() {
-        BDDMockito.given(categoryRepository.saveAll(any(Publisher.class)))
+        given(categoryRepository.saveAll(any(Publisher.class)))
                 .willReturn(Flux.just(Category.builder().build()));
 
         Mono<Category> catToSaveMono = Mono.just(Category.builder().description("cat1").build());
@@ -69,7 +70,7 @@ public class CategoryControllerTest {
 
     @Test
     public void testUpdateCategory() {
-        BDDMockito.given(categoryRepository.save(any(Category.class)))
+        given(categoryRepository.save(any(Category.class)))
                 .willReturn(Mono.just(Category.builder().build()));
 
         Mono<Category> catToUpdateMono = Mono.just(Category.builder().description("cat1").build());
@@ -86,10 +87,10 @@ public class CategoryControllerTest {
 
     @Test
     public void testPatchCategory() {
-        BDDMockito.given(categoryRepository.findById(any(String.class)))
+        given(categoryRepository.findById(any(String.class)))
                 .willReturn(Mono.just(Category.builder().description("cat1").build()));
 
-        BDDMockito.given(categoryRepository.save(any(Category.class)))
+        given(categoryRepository.save(any(Category.class)))
                 .willReturn(Mono.just(Category.builder().description("cat1U").build()));
 
         Mono<Category> catToUpdateMono = Mono.just(Category.builder().description("cat1U").build());
@@ -102,7 +103,7 @@ public class CategoryControllerTest {
                 .expectStatus()
                 .isOk();
 
-        BDDMockito.verify(categoryRepository).save(any());
+        verify(categoryRepository).save(any());
 
     }
 }
